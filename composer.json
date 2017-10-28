@@ -1,0 +1,29 @@
+{
+    "name": "didatus/simple-csv",
+    "description": "Simple CSV Importer and Access",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christian Hammer",
+            "email": "me@c8h5.de"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "5.2.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Didatus\\SimpleCSV\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": [
+            "phpunit"
+        ]
+    }
+}
