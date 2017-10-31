@@ -17,6 +17,8 @@ class SimpleCSV {
 
     private $delimiter;
 
+    private $enclosure;
+
     public function __construct($filename, $header = true)
     {
         $this->raw_data = file($filename);
@@ -30,18 +32,6 @@ class SimpleCSV {
     }
 
     /**
-     *
-     */
-    private function handleData():void
-    {
-        $delimiter = $this->getDelimiter();
-        foreach ($this->raw_data as $row) {
-            $record = str_getcsv($row, $delimiter);
-            $this->data[] = array_combine($this->header, $record);
-        }
-    }
-
-    /**
      * @return string
      */
     private function getDelimiter()
@@ -51,6 +41,19 @@ class SimpleCSV {
         }
 
         return $this->delimiter;
+    }
+
+    /**
+     *
+     */
+    private function handleData():void
+    {
+        $delimiter = $this->getDelimiter();
+        foreach ($this->raw_data as $row) {
+            $enclosure = $this->determineEnclosure($row);
+            $record = str_getcsv($row, $delimiter, $enclosure);
+            $this->data[] = array_combine($this->header, $record);
+        }
     }
 
     /**
@@ -145,9 +148,30 @@ class SimpleCSV {
         throw new DelimiterNotFoundException("no unique delimiter found");
     }
 
-    private function determineEnclosure():string
+    private function determineEnclosure($row):string
     {
-        return '"';
+        $delimiter_surrounding_characters = $this->getDelimiterSurroundingCharacters($row);
+        $possible_enclosure = array_unique($delimiter_surrounding_characters);
+
+        if (count($possible_enclosure) == 1) {
+            $key = key($possible_enclosure);
+            return $possible_enclosure[$key];
+        }
+
+        return '';
+    }
+
+    /**
+     * @param $row
+     * @return array
+     */
+    private function getDelimiterSurroundingCharacters($row)
+    {
+        $delimiter = $this->getDelimiter();
+        $delimiter_cleaned_row = preg_replace("/" . $delimiter . "+/", $delimiter, $row);
+        preg_match_all("/(.)" . $delimiter . "(.)/", $delimiter_cleaned_row, $matches);
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($matches));
+        return iterator_to_array($iterator, false);
     }
 
     private function determineEscape()
