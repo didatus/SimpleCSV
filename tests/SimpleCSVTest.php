@@ -7,47 +7,33 @@ use Didatus\SimpleCSV\SimpleCSV;
  * @covers \Didatus\SimpleCSV\SimpleCSV
  */
 class SimpleCSVTest extends PHPUnit_Framework_TestCase {
-    function testCommaDelimiter()
+    function testDefaultWithSemicolon()
     {
-        $csv = new SimpleCSV("tests/csv/default1.csv");
+        $csv = new SimpleCSV("tests/csv/default_semicolon.csv");
         $data = $csv->getData();
 
-        $this->assertCount(2, $data);
-        $this->assertCount(3, $data[0]);
-        $this->assertArrayHasKey('country', $data[0]);
-        $this->assertArrayHasKey('city', $data[0]);
-        $this->assertArrayHasKey('zip', $data[0]);
-        $this->assertEquals('Germany', $data[0]['country']);
-        $this->assertEquals('Cologne', $data[0]['city']);
-        $this->assertEquals('50667', $data[0]['zip']);
-        $this->assertCount(3, $data[1]);
-        $this->assertArrayHasKey('country', $data[1]);
-        $this->assertArrayHasKey('city', $data[1]);
-        $this->assertArrayHasKey('zip', $data[1]);
-        $this->assertEquals('Netherland', $data[1]['country']);
-        $this->assertEquals('Maastricht', $data[1]['city']);
-        $this->assertEquals('6211', $data[1]['zip']);
+        $dummy = require "csv/default.php";
+
+        $this->assertEquals($dummy, $data);
     }
 
-    function testTabDelimiter()
+    function testDefaultWithTab()
     {
-        $csv = new SimpleCSV("tests/csv/default2.csv");
+        $csv = new SimpleCSV("tests/csv/default_tab.csv");
         $data = $csv->getData();
 
-        $this->assertCount(2, $data);
-        $this->assertCount(3, $data[0]);
-        $this->assertArrayHasKey('country', $data[0]);
-        $this->assertArrayHasKey('city', $data[0]);
-        $this->assertArrayHasKey('zip', $data[0]);
-        $this->assertEquals('Germany', $data[0]['country']);
-        $this->assertEquals('Cologne', $data[0]['city']);
-        $this->assertEquals('50667', $data[0]['zip']);
-        $this->assertCount(3, $data[1]);
-        $this->assertArrayHasKey('country', $data[1]);
-        $this->assertArrayHasKey('city', $data[1]);
-        $this->assertArrayHasKey('zip', $data[1]);
-        $this->assertEquals('Netherland', $data[1]['country']);
-        $this->assertEquals('Maastricht', $data[1]['city']);
-        $this->assertEquals('6211', $data[1]['zip']);
+        $dummy = require "csv/default.php";
+
+        $this->assertEquals($dummy, $data);
+    }
+
+    function testDefaultWithTabAndDoubleQuotes()
+    {
+        $csv = new SimpleCSV("tests/csv/default_semicolon_double_quote.csv");
+        $data = $csv->getData();
+
+        $dummy = require "csv/default.php";
+
+        $this->assertEquals($dummy, $data);
     }
 }

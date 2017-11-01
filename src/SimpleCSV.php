@@ -17,8 +17,6 @@ class SimpleCSV {
 
     private $delimiter;
 
-    private $enclosure;
-
     public function __construct($filename, $header = true)
     {
         $this->raw_data = file($filename);
@@ -26,9 +24,14 @@ class SimpleCSV {
         $this->handleData();
     }
 
-    public function getData()
+    /**
+     * @return mixed
+     */
+    public function getData($offset = false, $row_count = false)
     {
-        return $this->data;
+        if ($offset === false && $row_count === false) {
+            return $this->data;
+        }
     }
 
     /**
@@ -48,12 +51,22 @@ class SimpleCSV {
      */
     private function handleData():void
     {
-        $delimiter = $this->getDelimiter();
         foreach ($this->raw_data as $row) {
-            $enclosure = $this->determineEnclosure($row);
-            $record = str_getcsv($row, $delimiter, $enclosure);
+            $record = $this->handleRow($row);
             $this->data[] = array_combine($this->header, $record);
         }
+    }
+
+    /**
+     * @param $row
+     * @return array
+     */
+    private function handleRow($row)
+    {
+        $delimiter = $this->getDelimiter();
+        $enclosure = $this->determineEnclosure($row);
+        $escape = $this->determineEscape($row, $enclosure);
+        return str_getcsv($row, $delimiter, $enclosure, $escape);
     }
 
     /**
@@ -62,8 +75,7 @@ class SimpleCSV {
     private function defineHeader($named_header):void
     {
         if ($named_header) {
-            $delimiter = $this->getDelimiter();
-            $this->header = explode($delimiter, trim($this->raw_data[0]));
+            $this->header = $this->handleRow($this->raw_data[0]);
             array_shift($this->raw_data);
         } else {
             $this->header = range(1, count($this->raw_data[0]));
@@ -148,6 +160,10 @@ class SimpleCSV {
         throw new DelimiterNotFoundException("no unique delimiter found");
     }
 
+    /**
+     * @param $row
+     * @return string
+     */
     private function determineEnclosure($row):string
     {
         $delimiter_surrounding_characters = $this->getDelimiterSurroundingCharacters($row);
@@ -168,14 +184,50 @@ class SimpleCSV {
     private function getDelimiterSurroundingCharacters($row)
     {
         $delimiter = $this->getDelimiter();
-        $delimiter_cleaned_row = preg_replace("/" . $delimiter . "+/", $delimiter, $row);
-        preg_match_all("/(.)" . $delimiter . "(.)/", $delimiter_cleaned_row, $matches);
+        $delimiter_cleaned_row = preg_replace("/" . preg_quote($delimiter . "+", '/') . "/", $delimiter, $row);
+        preg_match_all("/" . preg_quote("(.)" . $delimiter . "(.)", '/') . "/", $delimiter_cleaned_row, $matches);
         $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($matches));
         return iterator_to_array($iterator, false);
     }
 
-    private function determineEscape()
+    /**
+     * @param $row
+     * @param $enclosure
+     * @return string
+     */
+    private function determineEscape($row, $enclosure)
     {
+        $delimiter = $this->getDelimiter();
+        $elements = explode($delimiter, $row);
 
+        $elements = array_map(function($element) use ($enclosure) {
+            return trim($element, $enclosure);
+        }, $elements);
+
+        $possible_escape = [];
+        foreach ($elements as $element) {
+            $result  = $this->getEnclosureLeadingCharacters($element, $enclosure);
+            $possible_escape = array_merge($possible_escape, $result);
+        }
+        $possible_escape = array_unique($possible_escape);
+
+        if (count($possible_escape) == 1) {
+            $key = key($possible_escape);
+            return $possible_escape[$key];
+        }
+
+        return '';
+    }
+
+    /**
+     * @param $element
+     * @param $enclosure
+     * @return array|\RecursiveIteratorIterator
+     */
+    private function getEnclosureLeadingCharacters($element, $enclosure)
+    {
+        preg_match_all("/" . preg_quote("(.)" . $enclosure, '/') . "/", $element, $matches);
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($matches));
+        return iterator_to_array($iterator, false);
     }
 }
