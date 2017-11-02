@@ -78,7 +78,8 @@ class SimpleCSV {
             $this->header = $this->handleRow($this->raw_data[0]);
             array_shift($this->raw_data);
         } else {
-            $this->header = range(1, count($this->raw_data[0]));
+            $first_row = $this->handleRow($this->raw_data[0]);
+            $this->header = range(1, count($first_row));
         }
     }
 
@@ -119,7 +120,7 @@ class SimpleCSV {
      * @param array $char_count
      * @param string $chr
      * @param int $count
-     * @return string
+     * @return bool
      */
     private function checkCharacterForConstantOccurence(array $char_count, string $chr, int $count): string
     {

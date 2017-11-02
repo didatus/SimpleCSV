@@ -36,4 +36,14 @@ class SimpleCSVTest extends PHPUnit_Framework_TestCase {
 
         $this->assertEquals($dummy, $data);
     }
+
+    function testWithoutHeader()
+    {
+        $csv = new SimpleCSV("tests/csv/without_header.csv", false);
+        $data = $csv->getData();
+
+        $dummy = require "csv/without_header.php";
+
+        $this->assertEquals($dummy, $data);
+    }
 }
